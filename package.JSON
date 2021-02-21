@@ -1,26 +1,27 @@
 {
-  "name": "api-demo",
-  "version": "1.0.0",
-  "description": "**Author**: Malek E. Al-Rshaidat **Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/malik9931/city_explorer_api.git"
-  },
-  "bugs": {
-    "url": "https://github.com/malik9931/city_explorer_api/issues"
-  },
-  "homepage": "https://github.com/malik9931/city_explorer_api#readme"
-}
+    "name": "api-demo",
+    "version": "1.0.0",
+    "description": "**Author**: Malek E. Al-Rshaidat **Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)",
+    "main": "server.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "node server.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "cors": "^2.8.5",
+      "dotenv": "^8.2.0",
+      "express": "^4.17.1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/malik9931/city_explorer_api.git"
+    },
+    "bugs": {
+      "url": "https://github.com/malik9931/city_explorer_api/issues"
+    },
+    "homepage": "https://github.com/malik9931/city_explorer_api#readme"
+  }
+  
