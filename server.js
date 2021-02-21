@@ -43,6 +43,7 @@ server.get('/weather',(req,res)=>{
     const wethData = require('./data/weather.json');
     const wethObj = new Weather(wethData);
     console.log(wethObj);
+    console.log('webData',wethData);
     res.send(wethObj);
 })
 
