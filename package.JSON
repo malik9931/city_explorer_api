@@ -22,5 +22,6 @@
   "bugs": {
     "url": "https://github.com/malik9931/city_explorer_api/issues"
   },
-  "homepage": "https://github.com/malik9931/city_explorer_api#readme"
+  "homepage": "https://github.com/malik9931/city_explorer_api#readme",
+  "devDependencies": {}
 }
