@@ -57,20 +57,12 @@ function Weather(forcastData, index){
     this.time = forcastData.data[index].valid_date;
     weathObjects.push(this);
     
-    // [
-    //     {
-    //       "forecast": "Partly cloudy until afternoon.",
-    //       "time": "Mon Jan 01 2001"
-    //     },
-    //     {
-    //       "forecast": "Mostly cloudy in the morning.",
-    //       "time": "Tue Jan 02 2001"
-    //     },
-    //     ...
-    //   ]
 }
 
-
+// localhost:3000/ssss
+server.use('*',(req,res)=>{
+    res.status(500).send('Sorry, something went wrong')
+})
 
 server.listen(PORT, ()=>{
     console.log(`Listening on PORT ${PORT}`);
