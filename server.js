@@ -39,32 +39,36 @@ function Location(geoData){
 
 // weather route
 //request: localhost:3000/location
+let weathObjects = [];
 server.get('/weather',(req,res)=>{
     const wethData = require('./data/weather.json');
-    const wethObj = new Weather(wethData);
-    console.log(wethObj);
-    console.log('webData',wethData);
-    res.send(wethObj);
+    for (let i = 0; i < wethData.data.length; i++) {
+        let wethObj = new Weather(wethData,i);        
+    }
+    
+    // console.log(wethObj);
+    // console.log('webData',wethData);
+    res.send(weathObjects);
 })
 
-// function Weather(forcastData){
-//     this.forecast = forcastData.data;
-//     this.formatted_query = geoData[0].display_name;
-//     this.latitude = geoData[0].lat;
-//     this.longitude = geoData[0].lon;
+function Weather(forcastData, index){
 
-//     [
-//         {
-//           "forecast": "Partly cloudy until afternoon.",
-//           "time": "Mon Jan 01 2001"
-//         },
-//         {
-//           "forecast": "Mostly cloudy in the morning.",
-//           "time": "Tue Jan 02 2001"
-//         },
-//         ...
-//       ]
-// }
+    this.forecast = forcastData.data[index].weather.description;
+    this.time = forcastData.data[index].valid_date;
+    weathObjects.push(this);
+    
+    // [
+    //     {
+    //       "forecast": "Partly cloudy until afternoon.",
+    //       "time": "Mon Jan 01 2001"
+    //     },
+    //     {
+    //       "forecast": "Mostly cloudy in the morning.",
+    //       "time": "Tue Jan 02 2001"
+    //     },
+    //     ...
+    //   ]
+}
 
 
 
