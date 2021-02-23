@@ -17,7 +17,7 @@ app.use(cors()); // make it opened
 // Routes Definitions
 app.get("/", handleHomeRoute);
 app.get("/location", locationHandler);
-app.get("/weather", weatherHandler);
+// app.get("/weather", weatherHandler);
 // app.get('*',notFoundRouteHandler);
 // app.use(errorHandler);
 
