@@ -1,13 +1,16 @@
 "use strict";
-
 const express = require("express");
-
 //CORS: Cross Origin Resource Sharing
 const cors = require("cors");
-
+const pg = require("pg");
 //DOTENV (read our enviroment variable)
 require("dotenv").config();
 const superagent = require("superagent");
+// const client = new pg.Client(process.env.DATABASE_URL);
+const client = new pg.Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 //Application Setup
 const PORT = process.env.PORT || 3030;
@@ -26,16 +29,59 @@ function handleHomeRoute(req, res) {
   res.status(200).send("you did a great job");
 }
 
+function checkLocationHandler(city) {
+  let safeValue = [city];
+  console.log("inside checkLocationHandler fun", SQL);
+
+  //   if (SQL !== null) {
+  return client
+    .query(SQL, safeValue)
+    .then((results) => {
+      console.log("inside checkLocationHandler fun", results.rows);
+      return results.rows;
+    })
+    .catch((error) => {
+      res.send("pppppppppppp", error.message);
+    });
+  //   }
+}
+
 // location route
 //request: localhost:3000/location
 //http://localhost:3000/location?city=Lynnwood
 function locationHandler(req, res) {
-  // console.log(req.query);
   const cityName = req.query.city;
-  // console.log(cityName);
+  // let safeValue = [cityName];
+  let SQL = `SELECT search_query FROM locations WHERE search_query=${cityName};`;
+  console.log("hiiiiiiiiiiii");
+  let result = client.query(SQL, cityName);
+  //   client.query(SQL, cityName)
+  //   .then((result) => {
+  if (result == null) {
+    console.log("this is IF");
+    res.send(result);
+  } else {
+    console.log("this is  else");
+    getLocationApi(req, res);
+  }
+  //   });
 
-  // https://eu1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json
+  //   console.log('this is SQL',SQL);
+  //   checkLocationHandler(cityName)
+  //   .then((result) => {
+  //       console.log('hhhhhhhhhhhhh');
+  //     if (result.length > 0) {
+  //       res.send(result);
+  //     } else {
+  //         getLocationApi(result);
+  //     }
+  //   });
+}
 
+function getLocationApi(req, res) {
+  //   https://eu1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json
+  // console.log(req.query);
+  let cityName = req.query.city;
   let key = process.env.GEOCODE_API_KEY;
   let url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`;
 
@@ -44,7 +90,20 @@ function locationHandler(req, res) {
     .then((locData) => {
       // console.log(locData);
       const locationData = new Location(cityName, locData.body[0]);
+      console.log(locationData);
       res.send(locationData);
+      let SQL = `INSERT INTO locations VALUES $1 RETURNING *;`;
+      let safeValues = [locationData];
+      client
+        .query(SQL, safeValues)
+        .then((result) => {
+          console.log("inside insert");
+          res.send(result.rows);
+          // res.send('data has been inserted!!');
+        })
+        .catch((error) => {
+          res.send("error in inserting data to the dataBase", error.message);
+        });
     })
     .catch(() => {
       errorHandler("Error in getting data from locationiq", req, res);
@@ -67,7 +126,7 @@ function weatherHandler(req, res) {
   console.log(req.query);
   const long = req.query.longitude;
   const lat = req.query.latitude;
-//   console.log(cityName);
+  //   console.log(cityName);
 
   let weatherKey = process.env.WEATHER_API_KEY;
   // let url = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${long}&key=${weatherKey}`;
@@ -96,9 +155,9 @@ function Weather(forcastData, index) {
 }
 
 // localhost:3000/ssss
-app.use("*", (req, res) => {
-  res.status(500).send("Sorry, something went wrong");
-});
+// app.use("*", (req, res) => {
+//   res.status(500).send("Sorry, something went wrong");
+// });
 
 function errorHandler(error, req, res) {
   res.status(500).send(error);
