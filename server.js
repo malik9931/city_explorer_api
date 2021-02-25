@@ -8,11 +8,11 @@ const cors = require("cors");
 const pg = require("pg");
 //DOTENV (read our enviroment variable)
 const superagent = require("superagent");
-const client = new pg.Client(process.env.DATABASE_URL);
-// const client = new pg.Client({
-//   connectionString: process.env.DATABASE_URL,
-//   ssl: { rejectUnauthorized: false },
-// });
+// const client = new pg.Client(process.env.DATABASE_URL);
+const client = new pg.Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 //Application Setup
 const PORT = process.env.PORT || 3030;
@@ -38,7 +38,7 @@ function checkLocationDB(city) {
   let safe = [city];
   return client.query(SQL, safe).then((result) => {
     // console.log("hsadkla");
-    return result.rows;
+    return result;
   });
 }
 
@@ -47,13 +47,16 @@ function locationHandler(req, res) {
   const cityName = req.query.city;
   // console.log("hii");
   checkLocationDB(cityName)
-    .then((result) => {
-      // console.log(result);
-      if (result.length) {
-        res.send(result[0]);
+    .then((rowOfResult) => {
+      // console.log(rowOfResult);
+      if (rowOfResult.rowCount > 0) {
+        res.json(rowOfResult.rows[0]);
       } else {
         // console.log("this is  else");
-        getLocationApi(req, res);
+        getLocationApi(cityName).then((data) => {
+          // console.log(data);
+          res.json(data);
+        });
       }
     })
     .catch(() => {
@@ -61,41 +64,39 @@ function locationHandler(req, res) {
     });
 }
 
-function getLocationApi(req, res) {
+function getLocationApi(cityName) {
   //   https://eu1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json
   // console.log(req.query);
-  let cityName = req.query.city;
+  // let cityName = req.query.city;
   let key = process.env.GEOCODE_API_KEY;
   let url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`;
 
-  superagent
-    .get(url)
-    .then((locData) => {
-      // console.log(locData);
-      const locationData = new Location(cityName, locData.body[0]);
-      console.log(locationData);
-      res.send(locationData);
-      let SQL = `INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1,$2,$3,$4);`;
-      let safeValues = [
-        locationData.search_query,
-        locationData.formatted_query,
-        locationData.latitude,
-        locationData.longitude,
-      ];
-      client
-        .query(SQL, safeValues)
-        .then((result) => {
-          // console.log("inside insert");
-          res.send(result.rows);
-          // res.send('data has been inserted!!');
-        })
-        .catch((error) => {
-          errorHandler("error in inserting data to the dataBase", req, res);
-        });
-    })
-    .catch(() => {
-      errorHandler("Error in getting data from locationiq", req, res);
+  return superagent.get(url).then((locData) => {
+    // console.log(locData);
+    const locationData = new Location(cityName, locData.body[0]);
+    // console.log(locationData);
+    // res.send(locationData);
+    // return locationData;
+    let SQL = `INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1,$2,$3,$4) RETURNING *;`;
+    let safeValues = [
+      locationData.search_query,
+      locationData.formatted_query,
+      locationData.latitude,
+      locationData.longitude,
+    ];
+    return client.query(SQL, safeValues).then((result) => {
+      // console.log("inside insert");
+      // res.send(result.rows);
+      // res.send('data has been inserted!!');
+      return result.rows;
     });
+    // .catch((error) => {
+    //   errorHandler("error in inserting data to the dataBase", req, res);
+    // });
+  });
+  // .catch(() => {
+  //   errorHandler("Error in getting data from locationiq", req, res);
+  // });
 }
 
 //-------------------------------------------------WEATHER-----------------------------------------
@@ -118,7 +119,7 @@ function weatherHandler(req, res) {
       // console.log(weathData.body.lon);
       let weathArr = weathData.body.data.map((val) => new Weather(val));
       // console.log(weathArr);
-      res.send(weathArr);
+      res.json(weathArr);
     })
     .catch(() => {
       errorHandler("Error in getting data from weatherBit", req, res);
@@ -137,7 +138,7 @@ function parksHandler(req, res) {
     .then((parksData) => {
       // console.log(parksData.body.data);
       let parksArray = parksData.body.data.map((val) => new Park(val));
-      res.send(parksArray);
+      res.json(parksArray);
     })
     .catch(() => {
       errorHandler("Error in getting data from weatherBit", req, res);
@@ -149,7 +150,7 @@ function Park(parkData) {
 
   // console.log(this.address);
   this.fee = parkData.entranceFees[0].cost || "0.00";
-  console.log(parkData.entranceFees[0]);
+  // console.log(parkData.entranceFees[0]);
   this.description = parkData.description;
   this.url = parkData.url;
 }
