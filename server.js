@@ -53,7 +53,7 @@ function locationHandler(req, res) {
         res.json(rowOfResult.rows[0]);
       } else {
         // console.log("this is  else");
-        getLocationApi(cityName).then((data) => {
+        getLocationApi(cityName, req, res).then((data) => {
           // console.log(data);
           res.json(data);
         });
@@ -64,7 +64,7 @@ function locationHandler(req, res) {
     });
 }
 
-function getLocationApi(cityName) {
+function getLocationApi(cityName, req, res) {
   //   https://eu1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json
   // console.log(req.query);
   // let cityName = req.query.city;
@@ -75,7 +75,7 @@ function getLocationApi(cityName) {
     // console.log(locData);
     const locationData = new Location(cityName, locData.body[0]);
     // console.log(locationData);
-    // res.send(locationData);
+    res.json(locationData);
     // return locationData;
     let SQL = `INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1,$2,$3,$4) RETURNING *;`;
     let safeValues = [
