@@ -15,7 +15,7 @@ This project is my start point towards back-end developing, an app that provide 
 
 ## Getting Started
 
-insert this link: " https://city-explorer-210221.herokuapp.com " inside this link: " https://codefellows.github.io/code-301-guide/curriculum/city-explorer-app/front-end/ "
+insert this link: " https://city-explorer-engine.herokuapp.com" inside this link: " https://codefellows.github.io/code-301-guide/curriculum/city-explorer-app/front-end/ "
 
 if you want to clone the project make sure to install required libraries `npm i express dotenv cors pg superagent`.
 
