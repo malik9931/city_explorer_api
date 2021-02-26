@@ -24,6 +24,8 @@ app.get("/", handleHomeRoute);
 app.get("/location", locationHandler);
 app.get("/weather", weatherHandler);
 app.get("/parks", parksHandler);
+app.get("/movies", moviesHandler);
+app.get("/yelp", yelpHandler);
 app.get("*", notFoundRouteHandler);
 app.use(errorHandler);
 
@@ -138,23 +140,61 @@ function parksHandler(req, res) {
     .then((parksData) => {
       // console.log(parksData.body.data);
       let parksArray = parksData.body.data.map((val) => new Park(val));
+      // console.log(parksArray);
       res.json(parksArray);
     })
     .catch(() => {
       errorHandler("Error in getting data from weatherBit", req, res);
     });
 }
-function Park(parkData) {
-  this.name = parkData.fullName;
-  this.address = `"${parkData.addresses[0].line1}" "${parkData.addresses[0].city}" "${parkData.addresses[0].stateCode}" "${parkData.addresses[0].postalCode}"`;
 
-  // console.log(this.address);
-  this.fee = parkData.entranceFees[0].cost || "0.00";
-  // console.log(parkData.entranceFees[0]);
-  this.description = parkData.description;
-  this.url = parkData.url;
+//---------------------------------------MOVIES---------------------------------------
+function moviesHandler(req, res) {
+  let moviesSearch = req.query.search_query;
+  let moviesKey = process.env.MOVIE_API_KEY;
+  let url = `https://api.themoviedb.org/3/search/movie?api_key=${moviesKey}&language=en-US&query=${moviesSearch}&include_adult=false`;
+
+  superagent
+    .get(url)
+    .then((moviesData) => {
+      // console.log(moviesData.body.results);
+      let moviesResult = moviesData.body.results.map((val) => {
+        return new Movies(val);
+      });
+      // let moviesResult = new Movies(moviesData.body.result);
+      // console.log(moviesResult);
+      res.send(moviesResult);
+    })
+    .catch(() => {
+      errorHandler("Error in getting data from Movies API", req, res);
+    });
 }
 
+//---------------------------------------YELP---------------------------------------
+function yelpHandler(req, res) {
+  let latit = req.query.latitude;
+  let longit = req.query.longitude;
+  let page = req.query.page;
+  let numPerPage = 5;
+  let offsetResult = (page - 1) * numPerPage + 1;
+  let yelpKey = process.env.YELP_API_KEY;
+  let url = `https://api.yelp.com/v3/businesses/search?latitude=${latit}&longitude=${longit}&limit=${numPerPage}&offset=${offsetResult}`;
+
+  superagent
+    .get(url)
+    .set(`Authorization`, `Bearer ${yelpKey}`)
+    .then((yelpData) => {
+      // console.log(yelpData.body.businesses);
+      let yelpArr = yelpData.body.businesses.map((val) => new Yelp(val));
+      // console.log(yelpArr);
+      res.json(yelpArr);
+    })
+    .catch(() => {
+      errorHandler("Error in getting data from Yelp API", req, res);
+    });
+}
+
+//----------------------------------------- ERROR & NOTFOUND Handler ---------------------
 // localhost: 3000 / ssss;
 function notFoundRouteHandler(req, res) {
   res.status(500).send("Sorry, something went wrong");
@@ -164,7 +204,7 @@ function errorHandler(error, req, res) {
   res.status(404).send(error);
   // console.log("lkjas");
 }
-// Constructors
+// --------------------------------------------  Constructors  --------------------------------
 function Location(city, geoData) {
   this.search_query = city;
   this.formatted_query = geoData.display_name;
@@ -176,6 +216,37 @@ function Weather(weatherData) {
   this.forecast = weatherData.weather.description;
   this.time = new Date(weatherData.valid_date).toString().slice(0, 15);
 }
+
+function Park(parkData) {
+  this.name = parkData.fullName;
+  this.address = `"${parkData.addresses[0].line1}" "${parkData.addresses[0].city}" "${parkData.addresses[0].stateCode}" "${parkData.addresses[0].postalCode}"`;
+
+  // console.log(this.address);
+  this.fee = parkData.entranceFees[0].cost || "0.00";
+  // console.log(parkData.entranceFees[0]);
+  this.description = parkData.description;
+  this.url = parkData.url;
+}
+
+function Movies(movData) {
+  this.title = movData.title;
+  this.overview = movData.overview;
+  this.avgVotes = movData.vote_average;
+  this.totVotes = movData.vote_count;
+  this.imgUrl = `https://image.tmdb.org/t/p/w30${movData.poster_path}`;
+  this.popularity = movData.popularity;
+  this.releaseDate = movData.release_date;
+}
+
+function Yelp(val) {
+  this.name = val.name;
+  this.image = val.image_url;
+  this.price = val.price;
+  this.rating = val.rating;
+  this.url = val.url;
+}
+
+// ---------------------------------------- PORT & CONNICT WITH CLIENT(DB and Frond-End) ---------------------------------
 
 client.connect().then(() => {
   app.listen(PORT, () => {
